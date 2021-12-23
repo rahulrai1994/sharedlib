@@ -1,0 +1,35 @@
+@Library('git-demo') _
+
+pipeline {
+    agent any
+      stages {
+            
+            stage("Preparation") {
+                
+                steps {
+                    welcome()
+                }
+            }
+            stage("Build") {
+                steps {
+                    sh "mvn -f pom.xml clean install"
+                }
+                }
+            stage('SonarQube analysis') {
+                steps{
+                    withSonarQubeEnv('sonarqube-8.9.6') {
+                        sh "mvn sonar:sonar"
+                    }
+                }
+            }
+            stage("Publish Artifactory")    {
+                steps {
+                    s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'artifact-bucket-rahul', excludedFile: '/22/target', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: true, noUploadOnFailure: false, selectedRegion: 'us-east-2', showDirectlyInBrowser: false, sourceFile: '**/*', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false]], pluginFailureResultConstraint: 'FAILURE', profileName: 's3-artifactory', userMetadata: []
+                }
+            }
+           
+}
+}
+                
+            
+    
